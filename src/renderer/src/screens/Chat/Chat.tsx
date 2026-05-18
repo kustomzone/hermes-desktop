@@ -10,6 +10,7 @@ import { useChatActions } from "./hooks/useChatActions";
 import { useModelConfig } from "./hooks/useModelConfig";
 import { useFastMode } from "./hooks/useFastMode";
 import { useLocalCommands } from "./hooks/useLocalCommands";
+import { useI18n } from "../../components/useI18n";
 import type { ChatMessage, UsageState } from "./types";
 
 export type { ChatMessage } from "./types";
@@ -31,10 +32,13 @@ function Chat({
   onSessionStarted,
   onNewChat,
 }: ChatProps): React.JSX.Element {
+  const { t } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [hermesSessionId, setHermesSessionId] = useState<string | null>(null);
   const [toolProgress, setToolProgress] = useState<string | null>(null);
   const [usage, setUsage] = useState<UsageState | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const dragCounter = useRef(0);
   const chatInputRef = useRef<ChatInputHandle>(null);
 
   const { containerRef, bottomRef } = useChatScroll(messages);
@@ -121,8 +125,63 @@ function Chat({
     chatInputRef.current?.setText(text);
   }, []);
 
+  // Drag-and-drop: filter for dragenter events carrying files (suppresses
+  // text-drag noise from the textarea autocomplete and other in-app drags).
+  const eventHasFiles = useCallback((e: React.DragEvent): boolean => {
+    const types = e.dataTransfer?.types;
+    if (!types) return false;
+    for (let i = 0; i < types.length; i++) {
+      if (types[i] === "Files") return true;
+    }
+    return false;
+  }, []);
+
+  const handleDragEnter = useCallback(
+    (e: React.DragEvent) => {
+      if (!eventHasFiles(e)) return;
+      e.preventDefault();
+      dragCounter.current += 1;
+      if (dragCounter.current === 1) setDragActive(true);
+    },
+    [eventHasFiles],
+  );
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (!eventHasFiles(e)) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+    },
+    [eventHasFiles],
+  );
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current = Math.max(0, dragCounter.current - 1);
+    if (dragCounter.current === 0) setDragActive(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      if (!eventHasFiles(e)) return;
+      e.preventDefault();
+      dragCounter.current = 0;
+      setDragActive(false);
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length === 0) return;
+      void chatInputRef.current?.addFiles(files);
+    },
+    [eventHasFiles],
+  );
+
   return (
-    <div className="chat-container">
+    <div
+      className="chat-container"
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <ChatHeader
         sessionId={sessionId}
         usage={usage}
@@ -167,6 +226,11 @@ function Chat({
           onSelectModel={modelConfig.selectModel}
         />
       </div>
+      {dragActive && (
+        <div className="chat-drop-overlay" aria-hidden>
+          <div className="chat-drop-overlay-inner">{t("chat.dropToAttach")}</div>
+        </div>
+      )}
     </div>
   );
 }

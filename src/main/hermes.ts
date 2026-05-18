@@ -16,6 +16,10 @@ import { getSshTunnelUrl, isSshTunnelActive, isSshTunnelHealthy, startSshTunnel 
 import { stripAnsi } from "./utils";
 import { readModels } from "./models";
 import { HIDDEN_SUBPROCESS_OPTIONS } from "./process-options";
+import {
+  type Attachment,
+  escapeXmlAttr,
+} from "../shared/attachments";
 
 const LOCAL_API_URL = "http://127.0.0.1:8642";
 
@@ -165,18 +169,75 @@ export interface ChatCallbacks {
   }) => void;
 }
 
+type ChatContent =
+  | string
+  | Array<
+      | { type: "text"; text: string }
+      | { type: "image_url"; image_url: { url: string } }
+    >;
+
+/**
+ * Build the OpenAI-compatible `content` payload for a user turn.
+ *
+ * - No attachments → plain string (preserves prompt-cache friendliness for
+ *   the all-text path).
+ * - Text-file attachments → inlined into the text part as `<file …>…</file>`
+ *   wrappers (the gateway rejects `file`/`input_file` content parts, see
+ *   gateway/platforms/api_server.py:263).
+ * - Image attachments → emitted as `image_url` parts in the OpenAI vision
+ *   format, which the gateway accepts and converts for Anthropic providers.
+ */
+export function buildUserContent(
+  text: string,
+  attachments?: Attachment[],
+): ChatContent {
+  if (!attachments || attachments.length === 0) return text;
+
+  const textFiles = attachments.filter((a) => a.kind === "text-file");
+  const images = attachments.filter(
+    (a) => a.kind === "image" && typeof a.dataUrl === "string" && a.dataUrl,
+  );
+
+  const parts: string[] = [];
+  if (text.trim()) parts.push(text);
+  for (const f of textFiles) {
+    if (typeof f.text !== "string") continue;
+    const name = escapeXmlAttr(f.name);
+    const mime = escapeXmlAttr(f.mime || "text/plain");
+    parts.push(`<file name="${name}" mime="${mime}">\n${f.text}\n</file>`);
+  }
+  const composedText = parts.join("\n\n");
+
+  if (images.length === 0) return composedText;
+
+  const imageParts = images.map((img) => ({
+    type: "image_url" as const,
+    image_url: { url: img.dataUrl! },
+  }));
+
+  // Omit the text part entirely when there's nothing to say — some
+  // providers (Anthropic via Bedrock, certain vision endpoints) reject an
+  // empty-string text part as `invalid_content_part`.
+  if (!composedText) return imageParts;
+
+  return [{ type: "text" as const, text: composedText }, ...imageParts];
+}
+
 function sendMessageViaApi(
   message: string,
   cb: ChatCallbacks,
   profile?: string,
   _resumeSessionId?: string,
   history?: Array<{ role: string; content: string }>,
+  attachments?: Attachment[],
 ): ChatHandle {
   const mc = getModelConfig(profile);
   const controller = new AbortController();
 
-  // Build full conversation from history + current message (standard OpenAI format)
-  const messages: Array<{ role: string; content: string }> = [];
+  // Build full conversation from history + current message (standard OpenAI format).
+  // History items are kept text-only — attachments from prior turns live in
+  // the gateway's session state when resuming via session_id.
+  const messages: Array<{ role: string; content: ChatContent }> = [];
   if (history && history.length > 0) {
     for (const msg of history) {
       messages.push({
@@ -185,7 +246,8 @@ function sendMessageViaApi(
       });
     }
   }
-  messages.push({ role: "user", content: message });
+  const userContent = buildUserContent(message, attachments);
+  messages.push({ role: "user", content: userContent });
 
   const body = JSON.stringify({
     model: mc.model || "hermes-agent",
@@ -220,7 +282,7 @@ function sendMessageViaApi(
     // When streaming returns empty, make a non-streaming request to surface the real error
     const probeBody = JSON.stringify({
       model: mc.model || "hermes-agent",
-      messages: [{ role: "user", content: message }],
+      messages: [{ role: "user", content: userContent }],
       stream: false,
     });
     const probeUrl = `${getApiUrl()}/v1/chat/completions`;
@@ -445,7 +507,25 @@ function sendMessageViaCli(
   cb: ChatCallbacks,
   profile?: string,
   resumeSessionId?: string,
+  attachments?: Attachment[],
 ): ChatHandle {
+  // CLI fallback can't pipe multimodal content; inline text-file attachments
+  // and ignore images.  The gateway is the supported attachment path; this
+  // is only hit when the API server isn't reachable.
+  if (attachments && attachments.length > 0) {
+    const textFiles = attachments.filter(
+      (a) => a.kind === "text-file" && typeof a.text === "string",
+    );
+    if (textFiles.length > 0) {
+      const wrapped = textFiles
+        .map(
+          (f) =>
+            `<file name="${escapeXmlAttr(f.name)}" mime="${escapeXmlAttr(f.mime || "text/plain")}">\n${f.text}\n</file>`,
+        )
+        .join("\n\n");
+      message = message.trim() ? `${message}\n\n${wrapped}` : wrapped;
+    }
+  }
   const mc = getModelConfig(profile);
   const profileEnv = readEnv(profile);
 
@@ -658,12 +738,20 @@ export async function sendMessage(
   profile?: string,
   resumeSessionId?: string,
   history?: Array<{ role: string; content: string }>,
+  attachments?: Attachment[],
 ): Promise<ChatHandle> {
   ensureInitialized();
 
   // Remote mode: always use API, no CLI fallback
   if (isRemoteMode()) {
-    return sendMessageViaApi(message, cb, profile, resumeSessionId, history);
+    return sendMessageViaApi(
+      message,
+      cb,
+      profile,
+      resumeSessionId,
+      history,
+      attachments,
+    );
   }
 
   // Check API server availability (cache the result, re-check periodically)
@@ -672,11 +760,18 @@ export async function sendMessage(
   }
 
   if (apiServerAvailable) {
-    return sendMessageViaApi(message, cb, profile, resumeSessionId, history);
+    return sendMessageViaApi(
+      message,
+      cb,
+      profile,
+      resumeSessionId,
+      history,
+      attachments,
+    );
   }
 
   // Fallback to CLI
-  return sendMessageViaCli(message, cb, profile, resumeSessionId);
+  return sendMessageViaCli(message, cb, profile, resumeSessionId, attachments);
 }
 
 // Lazy init — called on first sendMessage or gateway start

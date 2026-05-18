@@ -7,23 +7,32 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { Send, Square as Stop, Slash } from "lucide-react";
+import { Send, Square as Stop, Slash, Paperclip } from "lucide-react";
 import { isImeComposing } from "./keyboard";
 import { useI18n } from "../../components/useI18n";
 import { SLASH_COMMANDS, type SlashCommand } from "./slashCommands";
 import { useInputHistory } from "./hooks/useInputHistory";
+import {
+  processFiles,
+  filesFromClipboard,
+  type AttachmentError,
+} from "./attachmentUtils";
+import { AttachmentChip } from "../../components/AttachmentChip";
+import type { Attachment } from "../../../../shared/attachments";
 
 export interface ChatInputHandle {
   setText(text: string): void;
   clear(): void;
   focus(): void;
+  /** Add files from external sources (drop overlay).  Returns errors. */
+  addFiles(files: File[] | FileList): Promise<AttachmentError[]>;
 }
 
 interface ChatInputProps {
   isLoading: boolean;
   hasSession: boolean;
-  onSubmit: (text: string) => void;
-  onQuickAsk: (text: string) => void;
+  onSubmit: (text: string, attachments: Attachment[]) => void;
+  onQuickAsk: (text: string, attachments: Attachment[]) => void;
   onAbort: () => void;
 }
 
@@ -37,8 +46,11 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
     const [slashMenuOpen, setSlashMenuOpen] = useState(false);
     const [slashFilter, setSlashFilter] = useState("");
     const [slashSelectedIndex, setSlashSelectedIndex] = useState(0);
+    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [attachmentError, setAttachmentError] = useState<string | null>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const slashMenuRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const autoResize = useCallback((): void => {
       const el = inputRef.current;
@@ -63,6 +75,45 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       applyText: applyHistoryText,
     });
 
+    const formatError = useCallback(
+      (err: AttachmentError): string => {
+        switch (err.code) {
+          case "too-many":
+            return t("chat.attachTooMany");
+          case "image-too-large":
+            return t("chat.attachImageTooLarge", { name: err.filename });
+          case "text-too-large":
+            return t("chat.attachTextTooLarge", { name: err.filename });
+          case "unsupported-type":
+            return t("chat.attachUnsupported", { name: err.filename });
+          case "read-failed":
+            return t("chat.attachReadFailed", { name: err.filename });
+          default:
+            return err.filename;
+        }
+      },
+      [t],
+    );
+
+    const ingestFiles = useCallback(
+      async (files: File[] | FileList): Promise<AttachmentError[]> => {
+        const { attachments: added, errors } = await processFiles(
+          files,
+          attachments.length,
+        );
+        if (added.length > 0) {
+          setAttachments((prev) => [...prev, ...added]);
+        }
+        if (errors.length > 0) {
+          setAttachmentError(formatError(errors[0]));
+        } else {
+          setAttachmentError(null);
+        }
+        return errors;
+      },
+      [attachments.length, formatError],
+    );
+
     useImperativeHandle(
       ref,
       () => ({
@@ -78,13 +129,18 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
         },
         clear(): void {
           setInput("");
+          setAttachments([]);
+          setAttachmentError(null);
           if (inputRef.current) inputRef.current.style.height = "auto";
         },
         focus(): void {
           inputRef.current?.focus();
         },
+        addFiles(files: File[] | FileList): Promise<AttachmentError[]> {
+          return ingestFiles(files);
+        },
       }),
-      [autoResize],
+      [autoResize, ingestFiles],
     );
 
     // Refocus the textarea when a streaming response ends
@@ -130,22 +186,27 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
     function clearAfterSend(text: string): void {
       history.push(text);
       setInput("");
+      setAttachments([]);
+      setAttachmentError(null);
       if (inputRef.current) inputRef.current.style.height = "auto";
     }
 
     function handleSend(): void {
       const text = input.trim();
-      if (!text || isLoading) return;
+      const hasPayload = text.length > 0 || attachments.length > 0;
+      if (!hasPayload || isLoading) return;
       setSlashMenuOpen(false);
+      const sendAttachments = attachments;
       clearAfterSend(text);
-      onSubmit(text);
+      onSubmit(text, sendAttachments);
     }
 
     function handleQuickAsk(): void {
       const text = input.trim();
       if (!text || isLoading) return;
+      const sendAttachments = attachments;
       clearAfterSend(text);
-      onQuickAsk(text);
+      onQuickAsk(text, sendAttachments);
     }
 
     function handleSlashSelect(cmd: SlashCommand): void {
@@ -154,7 +215,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       if (cmd.local || cmd.category === "info") {
         setInput("");
         if (inputRef.current) inputRef.current.style.height = "auto";
-        onSubmit(cmd.name);
+        onSubmit(cmd.name, []);
         return;
       }
       // Backend commands that take arguments: insert prefix and wait for the user
@@ -237,6 +298,32 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       }
     }
 
+    function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>): void {
+      const { files, hasText } = filesFromClipboard(e);
+      if (files.length === 0) return;
+      // If there's also text, let the textarea handle the text portion
+      // normally; we still consume the files (browser delivers both).
+      if (!hasText) e.preventDefault();
+      void ingestFiles(files);
+    }
+
+    async function handleFileInputChange(
+      e: React.ChangeEvent<HTMLInputElement>,
+    ): Promise<void> {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+      await ingestFiles(files);
+      // Reset so the same file can be picked again later
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+
+    function removeAttachment(id: string): void {
+      setAttachments((prev) => prev.filter((a) => a.id !== id));
+      setAttachmentError(null);
+    }
+
+    const canSend = (input.trim().length > 0 || attachments.length > 0) && !isLoading;
+
     return (
       <>
         {slashMenuOpen && filteredSlashCommands.length > 0 && (
@@ -262,7 +349,41 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
             </div>
           </div>
         )}
+        {(attachments.length > 0 || attachmentError) && (
+          <div className="chat-attachment-strip">
+            {attachments.map((att) => (
+              <AttachmentChip
+                key={att.id}
+                attachment={att}
+                onRemove={() => removeAttachment(att.id)}
+              />
+            ))}
+            {attachmentError && (
+              <div className="chat-attachment-error" role="alert">
+                {attachmentError}
+              </div>
+            )}
+          </div>
+        )}
         <div className="chat-input-wrapper">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/png,image/jpeg,image/webp,image/gif,text/*,.md,.json,.yaml,.yml,.toml,.csv,.tsv,.log,.py,.js,.ts,.tsx,.jsx,.go,.rs,.c,.cpp,.h,.java,.rb,.php,.sh,.html,.css,.sql,.xml,.vue,.svelte"
+            style={{ display: "none" }}
+            onChange={handleFileInputChange}
+          />
+          <button
+            className="chat-attach-btn"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+            title={t("chat.attach")}
+            aria-label={t("chat.attach")}
+            type="button"
+          >
+            <Paperclip size={16} />
+          </button>
           <textarea
             ref={inputRef}
             className="chat-input"
@@ -270,6 +391,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             rows={1}
             autoFocus
           />
@@ -295,7 +417,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
               <button
                 className="chat-send-btn"
                 onClick={handleSend}
-                disabled={!input.trim()}
+                disabled={!canSend}
                 title={t("chat.send")}
               >
                 <Send size={16} />

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { ChatInputHandle } from "../ChatInput";
-import type { ChatMessage } from "../types";
+import type { Attachment, ChatMessage } from "../types";
 
 interface LocalCommands {
   isLocal: (text: string) => boolean;
@@ -20,8 +20,8 @@ interface UseChatActionsArgs {
 }
 
 interface UseChatActionsResult {
-  handleSend: (text: string) => Promise<void>;
-  handleQuickAsk: (text: string) => Promise<void>;
+  handleSend: (text: string, attachments?: Attachment[]) => Promise<void>;
+  handleQuickAsk: (text: string, attachments?: Attachment[]) => Promise<void>;
   handleAbort: () => void;
   handleApprove: () => void;
   handleDeny: () => void;
@@ -52,17 +52,22 @@ export function useChatActions({
   });
 
   const pushUser = useCallback(
-    (content: string, idPrefix = "user") => {
+    (content: string, idPrefix = "user", attachments?: Attachment[]) => {
       setMessages((prev) => [
         ...prev,
-        { id: `${idPrefix}-${Date.now()}`, role: "user", content },
+        {
+          id: `${idPrefix}-${Date.now()}`,
+          role: "user",
+          content,
+          ...(attachments && attachments.length > 0 ? { attachments } : {}),
+        },
       ]);
     },
     [setMessages],
   );
 
   const sendToAgent = useCallback(
-    async (text: string): Promise<void> => {
+    async (text: string, attachments?: Attachment[]): Promise<void> => {
       try {
         await window.hermesAPI.sendMessage(
           text,
@@ -72,6 +77,7 @@ export function useChatActions({
             role: m.role,
             content: m.content,
           })),
+          attachments,
         );
       } catch {
         // onChatError IPC already surfaces this to the user
@@ -81,10 +87,11 @@ export function useChatActions({
   );
 
   const handleSend = useCallback(
-    async (text: string): Promise<void> => {
-      if (!text || isLoadingRef.current) return;
+    async (text: string, attachments?: Attachment[]): Promise<void> => {
+      const hasPayload = text.length > 0 || (attachments?.length ?? 0) > 0;
+      if (!hasPayload || isLoadingRef.current) return;
 
-      if (localCommands.isLocal(text)) {
+      if (text && localCommands.isLocal(text)) {
         const cmd = text.split(/\s+/)[0].toLowerCase();
         if (cmd !== "/new" && cmd !== "/clear") pushUser(text);
         await localCommands.executeLocal(text);
@@ -92,19 +99,19 @@ export function useChatActions({
       }
 
       setIsLoading(true);
-      pushUser(text);
+      pushUser(text, "user", attachments);
       onSessionStarted?.();
-      await sendToAgent(text);
+      await sendToAgent(text, attachments);
     },
     [localCommands, pushUser, onSessionStarted, sendToAgent, setIsLoading],
   );
 
   const handleQuickAsk = useCallback(
-    async (text: string): Promise<void> => {
+    async (text: string, attachments?: Attachment[]): Promise<void> => {
       if (!text || isLoadingRef.current) return;
       setIsLoading(true);
-      pushUser(`💭 ${text}`, "user-btw");
-      await sendToAgent(`/btw ${text}`);
+      pushUser(`💭 ${text}`, "user-btw", attachments);
+      await sendToAgent(`/btw ${text}`, attachments);
     },
     [pushUser, sendToAgent, setIsLoading],
   );

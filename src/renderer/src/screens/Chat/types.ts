@@ -1,7 +1,12 @@
+export type { Attachment, AttachmentKind } from "../../../../shared/attachments";
+
+import type { Attachment } from "../../../../shared/attachments";
+
 export interface ChatMessage {
   id: string;
   role: "user" | "agent";
   content: string;
+  attachments?: Attachment[];
 }
 
 export interface ModelGroup {

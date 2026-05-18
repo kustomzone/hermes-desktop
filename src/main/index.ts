@@ -11,6 +11,7 @@ import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import type { AppUpdater } from "electron-updater";
 import icon from "../../resources/icon.png?asset";
+import type { Attachment } from "../shared/attachments";
 import {
   checkInstallStatus,
   verifyInstall,
@@ -568,6 +569,7 @@ function setupIPC(): void {
       profile?: string,
       resumeSessionId?: string,
       history?: Array<{ role: string; content: string }>,
+      attachments?: Attachment[],
     ) => {
       if (!isRemoteMode() && !isGatewayRunning()) {
         startGateway(profile);
@@ -650,6 +652,7 @@ function setupIPC(): void {
         profile,
         resumeSessionId,
         history,
+        attachments,
       );
 
       currentChatAbort = handle.abort;

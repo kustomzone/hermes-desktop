@@ -17,79 +17,80 @@ describe("Remote/SSH Mode History Preservation", () => {
   it("sendMessage passes history to sendMessageViaApi in remote mode", () => {
     // Extract the sendMessage function's remote mode branch
     const remoteModeBranch = hermesSrc.match(
-      /\/\/ Remote mode: always use API, no CLI fallback[\s\S]*?if \(isRemoteMode\(\)\) \{[\s\S]*?return sendMessageViaApi\([^)]+\);[\s\S]*?\}/,
+      /\/\/ Remote mode: always use API, no CLI fallback[\s\S]*?if \(isRemoteMode\(\)\) \{[\s\S]*?return sendMessageViaApi\([\s\S]*?\);[\s\S]*?\}/,
     );
 
     expect(remoteModeBranch).toBeDefined();
-    
+
     const branchCode = remoteModeBranch![0];
-    
-    // Verify that sendMessageViaApi is called with history parameter
-    // The call should be: sendMessageViaApi(message, cb, profile, resumeSessionId, history)
+
+    // Verify that sendMessageViaApi is called with history parameter.
+    // Call signature is (message, cb, profile, resumeSessionId, history, attachments).
     const apiCallMatch = branchCode.match(
-      /return sendMessageViaApi\(([^)]+)\)/,
+      /return sendMessageViaApi\(([\s\S]*?)\);/,
     );
-    
+
     expect(apiCallMatch).toBeDefined();
-    
-    const params = apiCallMatch![1].split(",").map(p => p.trim());
-    
-    // Should have 5 parameters: message, cb, profile, resumeSessionId, history
+
+    const params = apiCallMatch![1].split(",").map(p => p.trim()).filter(Boolean);
+
+    // Should have at least 5 parameters: message, cb, profile, resumeSessionId, history
     expect(params.length).toBeGreaterThanOrEqual(5);
-    
-    // The last parameter should be history (or include history)
-    const lastParam = params[params.length - 1];
-    expect(lastParam).toContain("history");
+
+    // history must appear somewhere in the arg list
+    expect(params.some((p) => p === "history" || p.includes("history"))).toBe(true);
   });
 
   it("sendMessageViaApi builds messages from history + current message", () => {
-    // Extract sendMessageViaApi function
+    // Extract sendMessageViaApi function body.  The content-type element is
+    // intentionally not pinned to a literal — the type widened to a union
+    // when multimodal support landed.
     const funcMatch = hermesSrc.match(
-      /function sendMessageViaApi\([\s\S]*?\): ChatHandle \{[\s\S]*?const messages: Array<\{ role: string; content: string \}> = \[\];[\s\S]*?if \(history && history\.length > 0\) \{[\s\S]*?for \(const msg of history\) \{[\s\S]*?messages\.push\(\{[\s\S]*?role: msg\.role === "agent" \? "assistant" : msg\.role,[\s\S]*?content: msg\.content,[\s\S]*?\}\);[\s\S]*?\}[\s\S]*?\}[\s\S]*?messages\.push\(\{ role: "user", content: message \}\);/,
+      /function sendMessageViaApi\([\s\S]*?\): ChatHandle \{[\s\S]*?const messages: Array<[\s\S]*?> = \[\];[\s\S]*?if \(history && history\.length > 0\) \{[\s\S]*?for \(const msg of history\) \{[\s\S]*?messages\.push\(\{[\s\S]*?role: msg\.role === "agent" \? "assistant" : msg\.role,[\s\S]*?content: msg\.content,[\s\S]*?\}\);[\s\S]*?\}[\s\S]*?\}[\s\S]*?messages\.push\(\{ role: "user", content: [^}]+\}\);/,
     );
 
     expect(funcMatch).toBeDefined();
-    
+
     // Verify the function:
     // 1. Creates messages array
     // 2. Iterates through history and converts "agent" to "assistant"
     // 3. Pushes current user message at the end
-    
+
     const funcCode = funcMatch![0];
-    
+
     // Check history iteration
     expect(funcCode).toContain("for (const msg of history)");
-    
+
     // Check role conversion
     expect(funcCode).toContain('msg.role === "agent" ? "assistant" : msg.role');
-    
-    // Check current message is appended
-    expect(funcCode).toContain('messages.push({ role: "user", content: message })');
+
+    // Check current message is appended (content may be a string or a
+    // multimodal-content value built upstream — both end in the same push).
+    expect(funcCode).toMatch(/messages\.push\(\{ role: "user", content: \w+ \}\);/);
   });
 
   it("local API available branch also passes history", () => {
     // Extract the local API available branch
     const localApiBranch = hermesSrc.match(
-      /if \(apiServerAvailable\) \{[\s\S]*?return sendMessageViaApi\([^)]+\);[\s\S]*?\}/,
+      /if \(apiServerAvailable\) \{[\s\S]*?return sendMessageViaApi\([\s\S]*?\);[\s\S]*?\}/,
     );
 
     expect(localApiBranch).toBeDefined();
-    
+
     const branchCode = localApiBranch![0];
-    
+
     const apiCallMatch = branchCode.match(
-      /return sendMessageViaApi\(([^)]+)\)/,
+      /return sendMessageViaApi\(([\s\S]*?)\);/,
     );
-    
+
     expect(apiCallMatch).toBeDefined();
-    
-    const params = apiCallMatch![1].split(",").map(p => p.trim());
-    
-    // Should have 5 parameters including history
+
+    const params = apiCallMatch![1].split(",").map(p => p.trim()).filter(Boolean);
+
+    // Should have at least 5 parameters including history
     expect(params.length).toBeGreaterThanOrEqual(5);
-    
-    const lastParam = params[params.length - 1];
-    expect(lastParam).toContain("history");
+
+    expect(params.some((p) => p === "history" || p.includes("history"))).toBe(true);
   });
 
   it("all sendMessageViaApi calls in sendMessage include history parameter", () => {
