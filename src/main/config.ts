@@ -327,7 +327,10 @@ function findSegmentInBlock(
     const trimmed = line.trim();
 
     if (trimmed === "" || trimmed.startsWith("#")) {
-      cursor = lineEndExclusive === content.length ? content.length : lineEndExclusive + 1;
+      cursor =
+        lineEndExclusive === content.length
+          ? content.length
+          : lineEndExclusive + 1;
       continue;
     }
 
@@ -372,7 +375,10 @@ function findSegmentInBlock(
       }
     }
 
-    cursor = lineEndExclusive === content.length ? content.length : lineEndExclusive + 1;
+    cursor =
+      lineEndExclusive === content.length
+        ? content.length
+        : lineEndExclusive + 1;
   }
 
   return null;
@@ -545,7 +551,9 @@ function readTopLevelBlock(
     }
 
     cursor =
-      lineEndExclusive === content.length ? content.length : lineEndExclusive + 1;
+      lineEndExclusive === content.length
+        ? content.length
+        : lineEndExclusive + 1;
   }
 
   return {
@@ -646,9 +654,7 @@ export function setModelConfig(
   // returned 404s. `safeWriteFile` (used below) will create parent dirs
   // as needed; `upsertBlockChild` produces a valid minimal YAML doc
   // from an empty starting string.
-  let content = existsSync(configFile)
-    ? readFileSync(configFile, "utf-8")
-    : "";
+  let content = existsSync(configFile) ? readFileSync(configFile, "utf-8") : "";
 
   content = upsertBlockChild(content, "model", "provider", provider);
   content = upsertBlockChild(content, "model", "default", model);
@@ -784,7 +790,10 @@ function readPlatformOverride(
   content: string,
   platform: string,
 ): boolean | null {
-  const blockStartRe = new RegExp(`^${escapeRegex(platform)}:[ \\t]*\\r?\\n`, "m");
+  const blockStartRe = new RegExp(
+    `^${escapeRegex(platform)}:[ \\t]*\\r?\\n`,
+    "m",
+  );
   const startMatch = content.match(blockStartRe);
   if (!startMatch || startMatch.index === undefined) return null;
 
@@ -802,7 +811,9 @@ function readPlatformOverride(
 export function getPlatformEnabled(profile?: string): Record<string, boolean> {
   const env = readEnv(profile);
   const { configFile } = profilePaths(profile);
-  const content = existsSync(configFile) ? readFileSync(configFile, "utf-8") : "";
+  const content = existsSync(configFile)
+    ? readFileSync(configFile, "utf-8")
+    : "";
 
   const result: Record<string, boolean> = {};
   for (const platform of SUPPORTED_PLATFORMS) {
@@ -874,7 +885,10 @@ export function setPlatformEnabled(
 
   if (isFlowEmpty) {
     // Convert `<platform>: {}` to a block we can edit.
-    content = content.replace(flowStyleRe, `${configKey}:\n  enabled: ${enabled}`);
+    content = content.replace(
+      flowStyleRe,
+      `${configKey}:\n  enabled: ${enabled}`,
+    );
     safeWriteFile(configFile, content);
     return;
   }
@@ -964,7 +978,10 @@ function readAuthStore(profile?: string): Record<string, unknown> {
   }
 }
 
-function writeAuthStore(store: Record<string, unknown>, profile?: string): void {
+function writeAuthStore(
+  store: Record<string, unknown>,
+  profile?: string,
+): void {
   safeWriteFile(authFilePath(profile), JSON.stringify(store, null, 2));
 }
 
@@ -1018,7 +1035,9 @@ export function hasOAuthCredentials(
   for (const store of stores) {
     const providers = store.providers;
     if (providers && typeof providers === "object") {
-      const entry = (providers as Record<string, CredentialEntry>)[cleanProvider];
+      const entry = (providers as Record<string, CredentialEntry>)[
+        cleanProvider
+      ];
       if (
         entry &&
         (String(entry.access_token || "").trim() ||

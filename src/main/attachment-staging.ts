@@ -22,7 +22,7 @@ function sanitizeSegment(value: string, fallback: string): string {
   // whitespace to underscores.  Keeps the original name human-readable but
   // refuses anything that could escape the staging dir.
   const cleaned = value
-    .replace(/[\x00-\x1F<>:"/\\|?*]/g, "")
+    .replace(/[\x00-\x1F<>:"/\\|?*]/g, "") // eslint-disable-line no-control-regex
     .replace(/\s+/g, "_")
     .replace(/\.{2,}/g, ".")
     .trim();

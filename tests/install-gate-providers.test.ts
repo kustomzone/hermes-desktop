@@ -59,9 +59,9 @@ describe("expectedEnvKeyForModel — URL fallback for custom/auto providers", ()
   });
 
   it("recognizes a known endpoint when provider is 'auto'", () => {
-    expect(
-      expectedEnvKeyForModel("auto", "https://api.mistral.ai/v1"),
-    ).toBe("MISTRAL_API_KEY");
+    expect(expectedEnvKeyForModel("auto", "https://api.mistral.ai/v1")).toBe(
+      "MISTRAL_API_KEY",
+    );
   });
 
   it("returns null for unknown provider with unknown URL", () => {

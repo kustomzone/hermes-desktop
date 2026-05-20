@@ -128,7 +128,9 @@ vi.mock("better-sqlite3", () => {
       throw new Error(`Unhandled fake run SQL: ${this.sql}`);
     }
 
-    all(...args: unknown[]): SessionRow[] | Array<{ id: string; message_count: number }> {
+    all(
+      ...args: unknown[]
+    ): SessionRow[] | Array<{ id: string; message_count: number }> {
       if (this.sql.includes("FROM sessions s")) {
         const threshold = Number(args[0] ?? 0);
         return Array.from(this.store.sessions.values())
@@ -406,16 +408,46 @@ describe("syncSessionCache", () => {
     const future = now + 600;
 
     seedDb([
-      { id: "old-a", started_at: oldA, message_count: 5, firstUserMessage: "a" },
-      { id: "old-b", started_at: oldB, message_count: 10, firstUserMessage: "b" },
-      { id: "new-c", started_at: future, message_count: 1, firstUserMessage: "c" },
+      {
+        id: "old-a",
+        started_at: oldA,
+        message_count: 5,
+        firstUserMessage: "a",
+      },
+      {
+        id: "old-b",
+        started_at: oldB,
+        message_count: 10,
+        firstUserMessage: "b",
+      },
+      {
+        id: "new-c",
+        started_at: future,
+        message_count: 1,
+        firstUserMessage: "c",
+      },
     ]);
     syncSessionCache();
 
     seedDb([
-      { id: "old-a", started_at: oldA, message_count: 50, firstUserMessage: "a" },
-      { id: "old-b", started_at: oldB, message_count: 25, firstUserMessage: "b" },
-      { id: "new-c", started_at: future, message_count: 7, firstUserMessage: "c" },
+      {
+        id: "old-a",
+        started_at: oldA,
+        message_count: 50,
+        firstUserMessage: "a",
+      },
+      {
+        id: "old-b",
+        started_at: oldB,
+        message_count: 25,
+        firstUserMessage: "b",
+      },
+      {
+        id: "new-c",
+        started_at: future,
+        message_count: 7,
+        firstUserMessage: "c",
+      },
     ]);
     const result = syncSessionCache();
 

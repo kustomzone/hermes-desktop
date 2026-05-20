@@ -40,12 +40,7 @@ describe("getConfigValue — dotted paths (issue #247)", () => {
   it("resolves a 2-segment path: agent.service_tier", async () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
-      [
-        "agent:",
-        "  service_tier: fast",
-        "  max_turns: 60",
-        "",
-      ].join("\n"),
+      ["agent:", "  service_tier: fast", "  max_turns: 60", ""].join("\n"),
     );
 
     const { getConfigValue } = await importConfigWithHome(TEST_DIR);
@@ -55,12 +50,9 @@ describe("getConfigValue — dotted paths (issue #247)", () => {
   it("resolves a 2-segment path with quoted value: memory.provider", async () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
-      [
-        "memory:",
-        '  provider: "honcho"',
-        "  memory_enabled: true",
-        "",
-      ].join("\n"),
+      ["memory:", '  provider: "honcho"', "  memory_enabled: true", ""].join(
+        "\n",
+      ),
     );
 
     const { getConfigValue } = await importConfigWithHome(TEST_DIR);
@@ -114,12 +106,9 @@ describe("getConfigValue — dotted paths (issue #247)", () => {
     // under agent.
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
-      [
-        "agent:",
-        "  max_turns: 60",
-        "service_tier: top-level-orphan",
-        "",
-      ].join("\n"),
+      ["agent:", "  max_turns: 60", "service_tier: top-level-orphan", ""].join(
+        "\n",
+      ),
     );
 
     const { getConfigValue } = await importConfigWithHome(TEST_DIR);
@@ -152,12 +141,9 @@ describe("getConfigValue — flat keys pinned to top level", () => {
   it("reads a true top-level key", async () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
-      [
-        "timezone: 'America/New_York'",
-        "agent:",
-        "  max_turns: 60",
-        "",
-      ].join("\n"),
+      ["timezone: 'America/New_York'", "agent:", "  max_turns: 60", ""].join(
+        "\n",
+      ),
     );
 
     const { getConfigValue } = await importConfigWithHome(TEST_DIR);
@@ -170,12 +156,7 @@ describe("getConfigValue — flat keys pinned to top level", () => {
   it.skip("does NOT match a nested occurrence when called with a flat key", async () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
-      [
-        "agent:",
-        "  service_tier: fast",
-        "  max_turns: 60",
-        "",
-      ].join("\n"),
+      ["agent:", "  service_tier: fast", "  max_turns: 60", ""].join("\n"),
     );
 
     const { getConfigValue } = await importConfigWithHome(TEST_DIR);
@@ -214,7 +195,8 @@ describe("setConfigValue — dotted paths", () => {
       ].join("\n"),
     );
 
-    const { setConfigValue, getConfigValue } = await importConfigWithHome(TEST_DIR);
+    const { setConfigValue, getConfigValue } =
+      await importConfigWithHome(TEST_DIR);
     setConfigValue("agent.service_tier", "normal");
 
     const after = readFileSync(join(TEST_DIR, "config.yaml"), "utf-8");
@@ -263,7 +245,8 @@ describe("setConfigValue — dotted paths", () => {
       ["agent:", "  service_tier: fast", ""].join("\n"),
     );
 
-    const { getConfigValue, setConfigValue } = await importConfigWithHome(TEST_DIR);
+    const { getConfigValue, setConfigValue } =
+      await importConfigWithHome(TEST_DIR);
     expect(getConfigValue("agent.service_tier")).toBe("fast");
     setConfigValue("agent.service_tier", "priority");
     expect(getConfigValue("agent.service_tier")).toBe("priority");
@@ -274,12 +257,9 @@ describe("setConfigValue — flat keys", () => {
   it("updates a top-level key in place", async () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
-      [
-        "timezone: 'America/New_York'",
-        "agent:",
-        "  max_turns: 60",
-        "",
-      ].join("\n"),
+      ["timezone: 'America/New_York'", "agent:", "  max_turns: 60", ""].join(
+        "\n",
+      ),
     );
 
     const { setConfigValue } = await importConfigWithHome(TEST_DIR);
@@ -296,7 +276,8 @@ describe("setConfigValue — flat keys", () => {
       ["agent:", "  max_turns: 60", ""].join("\n"),
     );
 
-    const { setConfigValue, getConfigValue } = await importConfigWithHome(TEST_DIR);
+    const { setConfigValue, getConfigValue } =
+      await importConfigWithHome(TEST_DIR);
     setConfigValue("timezone", "UTC");
 
     expect(getConfigValue("timezone")).toBe("UTC");
@@ -305,11 +286,7 @@ describe("setConfigValue — flat keys", () => {
   it("does NOT overwrite a same-named nested key when called with a flat key", async () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
-      [
-        "agent:",
-        "  service_tier: fast",
-        "",
-      ].join("\n"),
+      ["agent:", "  service_tier: fast", ""].join("\n"),
     );
 
     const { setConfigValue } = await importConfigWithHome(TEST_DIR);

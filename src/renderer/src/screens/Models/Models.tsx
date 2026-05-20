@@ -132,7 +132,13 @@ function Models({ visible }: ModelsProps = {}): React.JSX.Element {
       // URL no longer matches; drop the badge but keep whatever's selected.
       setProviderAutoFilled(false);
     }
-  }, [formBaseUrl, showModal, providerTouched, formProvider, providerAutoFilled]);
+  }, [
+    formBaseUrl,
+    showModal,
+    providerTouched,
+    formProvider,
+    providerAutoFilled,
+  ]);
 
   async function handleSave(): Promise<void> {
     const name = formName.trim();
@@ -244,7 +250,11 @@ function Models({ visible }: ModelsProps = {}): React.JSX.Element {
             >
               <div className="models-card-header">
                 <div className="models-card-title">
-                  <BrandLogo provider={m.provider} modelId={m.model} size={20} />
+                  <BrandLogo
+                    provider={m.provider}
+                    modelId={m.model}
+                    size={20}
+                  />
                   <div className="models-card-name">{m.name}</div>
                 </div>
                 <span className="models-card-provider">
@@ -326,7 +336,10 @@ function Models({ visible }: ModelsProps = {}): React.JSX.Element {
               </div>
 
               <div className="models-modal-field">
-                <label className="models-modal-label" htmlFor="model-form-provider">
+                <label
+                  className="models-modal-label"
+                  htmlFor="model-form-provider"
+                >
                   {t("common.provider")}
                   {providerAutoFilled && !providerTouched && (
                     <span className="models-modal-auto-badge">

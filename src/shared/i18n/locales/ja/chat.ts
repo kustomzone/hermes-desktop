@@ -5,8 +5,7 @@ export default {
   auto: "自動",
   commandsTitle: "コマンド",
   typeMessage: "メッセージを入力...（Shift+Enter で改行）",
-  quickAskTitle:
-    "Quick Ask (/btw) — 会話コンテキストに影響しないサイド質問",
+  quickAskTitle: "Quick Ask (/btw) — 会話コンテキストに影響しないサイド質問",
   send: "送信",
   custom: "カスタム",
   typeModelName: "モデル名を入力...",
@@ -34,14 +33,17 @@ export default {
     "{{name}}: PDF/バイナリの添付にはローカルモードが必要です — 画像やテキストファイルは引き続き使用できます。",
   fastMode: "Fast Mode",
   fastModeOn: "Fast Mode ON",
-  fastModeActive: "優先処理が有効 — 対応モデルで低レイテンシ。クリックで無効化。",
-  fastModeInactive: "OpenAI と Anthropic モデルで低レイテンシの優先処理を有効化。",
+  fastModeActive:
+    "優先処理が有効 — 対応モデルで低レイテンシ。クリックで無効化。",
+  fastModeInactive:
+    "OpenAI と Anthropic モデルで低レイテンシの優先処理を有効化。",
   availableCommands: "利用可能なコマンド",
   categoryChat: "チャット",
   categoryAgent: "エージェント",
   categoryTools: "ツール",
   categoryInfo: "情報",
-  noUsageData: "まだ使用データがありません。まずメッセージを送ってみてください。",
+  noUsageData:
+    "まだ使用データがありません。まずメッセージを送ってみてください。",
   commands: {
     new: "新しいチャットを開始",
     clear: "会話履歴をクリア",

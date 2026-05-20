@@ -20,7 +20,8 @@ export default {
   yes: "Sim",
   no: "Não",
   nameRequired: "Nome e ID do Modelo são obrigatórios",
-  customProviderHint: "Necessário apenas para fornecedores personalizados ou locais",
+  customProviderHint:
+    "Necessário apenas para fornecedores personalizados ou locais",
   apiKeyLabel: "Chave da API",
   apiKeyHint:
     "Armazenada como uma variável de ambiente. Escolhe a chave correspondente com base no URL ou CUSTOM_API_KEY caso contrário.",

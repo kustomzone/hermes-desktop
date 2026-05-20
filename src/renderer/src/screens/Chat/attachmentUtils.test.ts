@@ -125,8 +125,11 @@ describe("processFiles", () => {
     expect(a.kind).toBe("path-ref");
     expect(a.path).toBe("C:/Users/me/Downloads/doc.pdf");
     expect(
-      (window as unknown as { hermesAPI: { stageAttachment: ReturnType<typeof vi.fn> } })
-        .hermesAPI.stageAttachment,
+      (
+        window as unknown as {
+          hermesAPI: { stageAttachment: ReturnType<typeof vi.fn> };
+        }
+      ).hermesAPI.stageAttachment,
     ).not.toHaveBeenCalled();
   });
 

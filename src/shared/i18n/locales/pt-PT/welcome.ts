@@ -13,11 +13,13 @@ export default {
   dividerOr: "ou",
   connectRemote: "Ligar a Hermes Remoto",
   connectRemoteTitle: "Ligar a Hermes Remoto",
-  connectRemoteSubtitle: "Introduza o URL de um servidor da API do Hermes em execução.",
+  connectRemoteSubtitle:
+    "Introduza o URL de um servidor da API do Hermes em execução.",
   remoteServerUrl: "URL do Servidor",
   remoteApiKey: "Chave da API (opcional)",
   remoteApiKeyPlaceholder: "Token Bearer (API_SERVER_KEY)",
   testingConnection: "A testar",
   connect: "Ligar",
-  remoteHint: "Deixe a chave em branco se o servidor aceitar pedidos não autenticados (ex: via túnel SSH para o localhost).",
+  remoteHint:
+    "Deixe a chave em branco se o servidor aceitar pedidos não autenticados (ex: via túnel SSH para o localhost).",
 } as const;

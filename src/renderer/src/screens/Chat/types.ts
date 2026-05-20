@@ -1,4 +1,7 @@
-export type { Attachment, AttachmentKind } from "../../../../shared/attachments";
+export type {
+  Attachment,
+  AttachmentKind,
+} from "../../../../shared/attachments";
 
 import type { Attachment } from "../../../../shared/attachments";
 

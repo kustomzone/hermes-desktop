@@ -390,10 +390,7 @@ function Layout({
             {remoteMode ? (
               <RemoteNotice feature="Kanban" />
             ) : (
-              <Kanban
-                profile={activeProfile}
-                visible={view === "kanban"}
-              />
+              <Kanban profile={activeProfile} visible={view === "kanban"} />
             )}
           </div>
         )}

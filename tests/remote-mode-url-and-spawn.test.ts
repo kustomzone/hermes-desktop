@@ -79,9 +79,8 @@ vi.mock("../src/main/process-options", () => ({
 // reach the spawn site; the unref/pid/on stubs are belt-and-braces.
 
 vi.mock("child_process", async () => {
-  const actual = await vi.importActual<typeof import("child_process")>(
-    "child_process",
-  );
+  const actual =
+    await vi.importActual<typeof import("child_process")>("child_process");
   return {
     ...actual,
     spawn: spawnSpy,

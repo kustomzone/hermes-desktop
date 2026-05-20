@@ -35,8 +35,10 @@ export default {
     "{{name}}: PDF/binary attachments require local mode — images and text files still work.",
   fastMode: "Fast Mode",
   fastModeOn: "Fast Mode ON",
-  fastModeActive: "Priority processing active — lower latency on supported models. Click to disable.",
-  fastModeInactive: "Enable priority processing for lower latency on OpenAI and Anthropic models.",
+  fastModeActive:
+    "Priority processing active — lower latency on supported models. Click to disable.",
+  fastModeInactive:
+    "Enable priority processing for lower latency on OpenAI and Anthropic models.",
   availableCommands: "Available Commands",
   categoryChat: "Chat",
   categoryAgent: "Agent",

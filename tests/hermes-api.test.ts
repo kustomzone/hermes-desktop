@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ── Shared state for capturing HTTP requests (hoisted before mocks) ──
 
-const { capturedRequests, makeMockRequest, stopHealthPolling } = vi.hoisted(() => {
+const { capturedRequests, makeMockRequest } = vi.hoisted(() => {
   const capturedRequests: Array<{
     url: string;
     options: Record<string, unknown>;
@@ -12,18 +12,27 @@ const { capturedRequests, makeMockRequest, stopHealthPolling } = vi.hoisted(() =
   function makeMockRequest(
     url: string,
     options: Record<string, unknown>,
-  ) {
+  ): {
+    write: (body: string) => void;
+    end: () => void;
+    on: (event: string, cb: () => void) => void;
+    destroy: () => void;
+  } {
     return {
       write: (body: string) => {
         capturedRequests.push({ url, options, body });
       },
       end: () => {},
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       on: (_event: string, _cb: () => void) => {},
       destroy: () => {},
     };
   }
 
-  return { capturedRequests, makeMockRequest, stopHealthPolling: () => capturedRequests.splice(0) };
+  return {
+    capturedRequests,
+    makeMockRequest,
+  };
 });
 
 // ── Mock Node.js http/https modules ──
@@ -101,7 +110,10 @@ vi.mock("../src/main/process-options", () => ({
 
 // ── Import module under test ──
 
-import { sendMessage, stopHealthPolling as realStopHealthPolling } from "../src/main/hermes";
+import {
+  sendMessage,
+  stopHealthPolling as realStopHealthPolling,
+} from "../src/main/hermes";
 
 describe("sendMessageViaApi forwards resumeSessionId", () => {
   beforeEach(() => {

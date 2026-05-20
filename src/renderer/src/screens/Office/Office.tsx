@@ -120,8 +120,7 @@ function Office({
     };
     if (!wv) return;
 
-    const ONBOARDING_JS =
-      `try { localStorage.setItem("claw3d:onboarding:completed", "true") } catch(e) {}`;
+    const ONBOARDING_JS = `try { localStorage.setItem("claw3d:onboarding:completed", "true") } catch(e) {}`;
 
     // Inject onboarding flag as early as possible (before Claw3D's scripts run).
     // did-start-loading fires before any page resources load, so the injection
@@ -270,12 +269,8 @@ function Office({
         <div className="office-center">
           <div className="office-setup-card">
             <h2 className="office-setup-title">{t("office.setupTitle")}</h2>
-            <p className="office-setup-desc">
-              {t("office.setupDesc1")}
-            </p>
-            <p className="office-setup-desc">
-              {t("office.setupDesc2")}
-            </p>
+            <p className="office-setup-desc">{t("office.setupDesc1")}</p>
+            <p className="office-setup-desc">{t("office.setupDesc2")}</p>
             {error && <div className="office-error">{error}</div>}
             <div className="office-setup-actions">
               <button className="btn btn-primary" onClick={handleInstall}>
@@ -289,7 +284,8 @@ function Office({
                   )
                 }
               >
-                <ExternalLink size={14} />{t("office.viewOnGithub")}
+                <ExternalLink size={14} />
+                {t("office.viewOnGithub")}
               </button>
             </div>
           </div>

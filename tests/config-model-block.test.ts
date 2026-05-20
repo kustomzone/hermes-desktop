@@ -34,14 +34,14 @@ describe("getModelConfig — scoped to model: block", () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
       [
-        'model:',
+        "model:",
         '  default: "gpt-5.5"',
         '  provider: "openai-codex"',
         '  base_url: "https://chatgpt.com/backend-api/codex"',
-        'personalities:',
-        '  default: You give clear, accurate, and actionable responses.',
-        '  coding: You are an expert coding assistant.',
-        '',
+        "personalities:",
+        "  default: You give clear, accurate, and actionable responses.",
+        "  coding: You are an expert coding assistant.",
+        "",
       ].join("\n"),
     );
 
@@ -60,15 +60,15 @@ describe("getModelConfig — scoped to model: block", () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
       [
-        'agent:',
-        '  personalities:',
-        '    default: You give clear, accurate, and actionable responses.',
-        'personalities:',
-        '  default: You are an expert coding assistant.',
-        'model:',
+        "agent:",
+        "  personalities:",
+        "    default: You give clear, accurate, and actionable responses.",
+        "personalities:",
+        "  default: You are an expert coding assistant.",
+        "model:",
         '  default: "claude-sonnet-4"',
         '  provider: "anthropic"',
-        '',
+        "",
       ].join("\n"),
     );
 
@@ -83,11 +83,11 @@ describe("getModelConfig — scoped to model: block", () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
       [
-        'personalities:',
-        '  default: Just a personality.',
-        'agent:',
-        '  provider: should-not-be-picked',
-        '',
+        "personalities:",
+        "  default: Just a personality.",
+        "agent:",
+        "  provider: should-not-be-picked",
+        "",
       ].join("\n"),
     );
 
@@ -110,12 +110,12 @@ describe("getModelConfig — scoped to model: block", () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
       [
-        'model:',
+        "model:",
         '  default: "real-model"',
-        '  fallback:',
+        "  fallback:",
         '    default: "decoy-model"', // 4-space indent: nested, must not be picked
         '    provider: "decoy-provider"',
-        '',
+        "",
       ].join("\n"),
     );
 
@@ -128,18 +128,20 @@ describe("getModelConfig — scoped to model: block", () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
       [
-        'auxiliary:',
-        '  vision:',
-        '    provider: auto',
-        'model:',
+        "auxiliary:",
+        "  vision:",
+        "    provider: auto",
+        "model:",
         '  default: "gpt-4o"',
         '  provider: "openai"',
-        '',
+        "",
       ].join("\n"),
     );
 
     const { getModelConfig } = await importConfigWithHome(TEST_DIR);
-    expect((await importConfigWithHome(TEST_DIR)).getModelConfig().provider).toBe("openai");
+    expect(
+      (await importConfigWithHome(TEST_DIR)).getModelConfig().provider,
+    ).toBe("openai");
     void getModelConfig;
   });
 
@@ -147,11 +149,11 @@ describe("getModelConfig — scoped to model: block", () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
       [
-        'model:',
-        '  default: bare-value',
+        "model:",
+        "  default: bare-value",
         "  provider: 'single-quoted'",
         '  base_url: "https://example.com"',
-        '',
+        "",
       ].join("\n"),
     );
 
@@ -166,13 +168,13 @@ describe("getModelConfig — scoped to model: block", () => {
 describe("setModelConfig — scoped to model: block", () => {
   it("updates model.default in place without touching personalities.default", async () => {
     const before = [
-      'model:',
+      "model:",
       '  default: "gpt-3.5"',
       '  provider: "openai"',
-      'personalities:',
-      '  default: You give clear, accurate, and actionable responses.',
-      '  coding: You are an expert coding assistant.',
-      '',
+      "personalities:",
+      "  default: You give clear, accurate, and actionable responses.",
+      "  coding: You are an expert coding assistant.",
+      "",
     ].join("\n");
     writeFileSync(join(TEST_DIR, "config.yaml"), before);
 
@@ -189,20 +191,21 @@ describe("setModelConfig — scoped to model: block", () => {
 
   it("inserts the model.default key at the block's existing indent when it was missing", async () => {
     const before = [
-      'model:',
+      "model:",
       '  provider: "openai"',
-      'personalities:',
-      '  default: keep me intact',
-      '',
+      "personalities:",
+      "  default: keep me intact",
+      "",
     ].join("\n");
     writeFileSync(join(TEST_DIR, "config.yaml"), before);
 
-    const { setModelConfig, getModelConfig } = await importConfigWithHome(TEST_DIR);
+    const { setModelConfig, getModelConfig } =
+      await importConfigWithHome(TEST_DIR);
     setModelConfig("openai", "gpt-4o", "https://api.openai.com/v1");
 
     const after = readFileSync(join(TEST_DIR, "config.yaml"), "utf-8");
     // The new keys land inside the model: block, indented like its existing children.
-    expect(after).toMatch(/^model:\n(?:  [a-zA-Z_]+: .*\n)+/m);
+    expect(after).toMatch(/^model:\n(?: {2}[a-zA-Z_]+: .*\n)+/m);
     expect(after).toContain('  default: "gpt-4o"');
     expect(after).toContain('  base_url: "https://api.openai.com/v1"');
     expect(after).toContain("default: keep me intact");
@@ -217,21 +220,20 @@ describe("setModelConfig — scoped to model: block", () => {
   });
 
   it("creates the model: block if it doesn't exist yet", async () => {
-    const before = [
-      'personalities:',
-      '  default: keep me intact',
-      '',
-    ].join("\n");
+    const before = ["personalities:", "  default: keep me intact", ""].join(
+      "\n",
+    );
     writeFileSync(join(TEST_DIR, "config.yaml"), before);
 
-    const { setModelConfig, getModelConfig } = await importConfigWithHome(TEST_DIR);
+    const { setModelConfig, getModelConfig } =
+      await importConfigWithHome(TEST_DIR);
     setModelConfig("anthropic", "claude-sonnet", "");
 
     const after = readFileSync(join(TEST_DIR, "config.yaml"), "utf-8");
     // Model block exists with both keys correctly indented under it.
     // Insertion order isn't load-bearing — we round-trip through the
     // reader below to confirm the values are correctly scoped.
-    expect(after).toMatch(/^model:\n(?:  [a-zA-Z_]+: .*\n)+/m);
+    expect(after).toMatch(/^model:\n(?: {2}[a-zA-Z_]+: .*\n)+/m);
     expect(after).toContain('  provider: "anthropic"');
     expect(after).toContain('  default: "claude-sonnet"');
     // Personality description must remain intact.
@@ -245,10 +247,11 @@ describe("setModelConfig — scoped to model: block", () => {
   it("invalidates cached reads after a write", async () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
-      ['model:', '  default: "gpt-3.5"', '  provider: "openai"', ''].join("\n"),
+      ["model:", '  default: "gpt-3.5"', '  provider: "openai"', ""].join("\n"),
     );
 
-    const { getModelConfig, setModelConfig } = await importConfigWithHome(TEST_DIR);
+    const { getModelConfig, setModelConfig } =
+      await importConfigWithHome(TEST_DIR);
     expect(getModelConfig().model).toBe("gpt-3.5");
     setModelConfig("openai", "gpt-4o", "");
     expect(getModelConfig().model).toBe("gpt-4o");

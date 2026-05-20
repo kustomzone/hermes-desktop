@@ -1,6 +1,7 @@
 export default {
   title: "Ferramentas",
-  subtitle: "Active ou desactive os conjuntos de ferramentas que o seu agente pode usar durante as conversas",
+  subtitle:
+    "Active ou desactive os conjuntos de ferramentas que o seu agente pode usar durante as conversas",
   web: {
     label: "Pesquisa na Web",
     description: "Pesquisa na web e extrai conteúdo de URLs",
@@ -26,7 +27,10 @@ export default {
     label: "Geração de Imagens",
     description: "Gera imagens com DALL-E e outros modelos",
   },
-  tts: { label: "Texto para Voz", description: "Converte texto em áudio falado" },
+  tts: {
+    label: "Texto para Voz",
+    description: "Converte texto em áudio falado",
+  },
   skills: {
     label: "Competências/Skills",
     description: "Cria, gere e executa competências reutilizáveis",
@@ -60,7 +64,8 @@ export default {
     description: "Cria e gere listas de afazeres para tarefas complexas",
   },
   mcpServers: "Servidores MCP",
-  mcpDescription: "Servidores Model Context Protocol configurados no config.yaml. Faça a gestão via <code>hermes mcp add/remove</code> no terminal.",
+  mcpDescription:
+    "Servidores Model Context Protocol configurados no config.yaml. Faça a gestão via <code>hermes mcp add/remove</code> no terminal.",
   http: "HTTP",
   stdio: "stdio",
   disabled: "desactivado",

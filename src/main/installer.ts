@@ -264,7 +264,10 @@ export function expectedEnvKeyForModel(
   return null;
 }
 
-function envHasUsableValue(content: string, expectedKey: string | null): boolean {
+function envHasUsableValue(
+  content: string,
+  expectedKey: string | null,
+): boolean {
   for (const line of content.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;

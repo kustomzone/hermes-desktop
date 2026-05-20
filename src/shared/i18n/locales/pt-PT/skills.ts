@@ -1,6 +1,7 @@
 export default {
   title: "Competências/Skills",
-  subtitle: "Estenda o seu agente com competências e fluxos de trabalho reutilizáveis",
+  subtitle:
+    "Estenda o seu agente com competências e fluxos de trabalho reutilizáveis",
   refresh: "Actualizar",
   installedTab: "Instaladas",
   browseTab: "Explorar",
@@ -13,7 +14,8 @@ export default {
     "Explore as competências disponíveis e instale-as para estender o seu agente",
   noMatchingHint: "Tente um termo de pesquisa diferente",
   noBrowseResults: "Nenhuma competência encontrada",
-  noBrowseResultsHint: "Tente um termo de pesquisa ou filtro de categoria diferente",
+  noBrowseResultsHint:
+    "Tente um termo de pesquisa ou filtro de categoria diferente",
   installFailed: "Falha ao instalar a competência",
   uninstallFailed: "Falha ao desinstalar a competência",
   removing: "A remover...",

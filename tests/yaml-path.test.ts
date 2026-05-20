@@ -35,10 +35,14 @@ describe("getYamlPath", () => {
     expect(getYamlPath(HERMES_LIKE_CONFIG, "memory.provider")).toBe("honcho");
     expect(getYamlPath(HERMES_LIKE_CONFIG, "model.provider")).toBe("openai");
     expect(getYamlPath(HERMES_LIKE_CONFIG, "model.default")).toBe("gpt-4o");
-    expect(getYamlPath(HERMES_LIKE_CONFIG, "model.base_url")).toBe("https://api.openai.com/v1");
+    expect(getYamlPath(HERMES_LIKE_CONFIG, "model.base_url")).toBe(
+      "https://api.openai.com/v1",
+    );
     expect(getYamlPath(HERMES_LIKE_CONFIG, "agent.service_tier")).toBe("");
     expect(getYamlPath(HERMES_LIKE_CONFIG, "network.force_ipv4")).toBe("false");
-    expect(getYamlPath(HERMES_LIKE_CONFIG, "security.redact_secrets")).toBe("true");
+    expect(getYamlPath(HERMES_LIKE_CONFIG, "security.redact_secrets")).toBe(
+      "true",
+    );
   });
 
   it("disambiguates same-name keys at different nesting levels", () => {
@@ -75,7 +79,9 @@ describe("getYamlPath", () => {
 
   it("returns null when an intermediate parent isn't a map", () => {
     // memory.provider.something doesn't exist — `provider: honcho` is a scalar
-    expect(getYamlPath(HERMES_LIKE_CONFIG, "memory.provider.something")).toBeNull();
+    expect(
+      getYamlPath(HERMES_LIKE_CONFIG, "memory.provider.something"),
+    ).toBeNull();
   });
 
   it("handles CRLF line endings", () => {

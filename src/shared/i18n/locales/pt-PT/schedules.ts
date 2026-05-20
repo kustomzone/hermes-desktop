@@ -38,7 +38,8 @@ export default {
   creating: "A criar...",
   create: "Criar",
   deleteTaskTitle: "Eliminar Tarefa",
-  deleteConfirmText: "Tem a certeza de que pretende eliminar esta tarefa agendada? Esta acção não pode ser desfeita.",
+  deleteConfirmText:
+    "Tem a certeza de que pretende eliminar esta tarefa agendada? Esta acção não pode ser desfeita.",
   deleting: "A eliminar...",
   delete: "Eliminar",
   loadFailed: "Falha ao carregar as tarefas agendadas",

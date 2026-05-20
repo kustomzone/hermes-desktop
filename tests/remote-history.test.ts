@@ -1,14 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
+import { describe, it, expect } from "vitest";
+import { readFileSync } from "fs";
 import { join } from "path";
-import { tmpdir } from "os";
 
 const ROOT = join(__dirname, "..");
 const hermesSrc = readFileSync(join(ROOT, "src/main/hermes.ts"), "utf-8");
 
 /**
  * Test that sendMessage passes history parameter in remote mode.
- * 
+ *
  * This test verifies the fix for the bug where remote/SSH mode was dropping
  * conversation history, causing multi-turn conversations to degrade into
  * single-turn requests.
@@ -32,13 +31,18 @@ describe("Remote/SSH Mode History Preservation", () => {
 
     expect(apiCallMatch).toBeDefined();
 
-    const params = apiCallMatch![1].split(",").map(p => p.trim()).filter(Boolean);
+    const params = apiCallMatch![1]
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
 
     // Should have at least 5 parameters: message, cb, profile, resumeSessionId, history
     expect(params.length).toBeGreaterThanOrEqual(5);
 
     // history must appear somewhere in the arg list
-    expect(params.some((p) => p === "history" || p.includes("history"))).toBe(true);
+    expect(params.some((p) => p === "history" || p.includes("history"))).toBe(
+      true,
+    );
   });
 
   it("sendMessageViaApi builds messages from history + current message", () => {
@@ -66,7 +70,9 @@ describe("Remote/SSH Mode History Preservation", () => {
 
     // Check current message is appended (content may be a string or a
     // multimodal-content value built upstream — both end in the same push).
-    expect(funcCode).toMatch(/messages\.push\(\{ role: "user", content: \w+ \}\);/);
+    expect(funcCode).toMatch(
+      /messages\.push\(\{ role: "user", content: \w+ \}\);/,
+    );
   });
 
   it("local API available branch also passes history", () => {
@@ -85,38 +91,44 @@ describe("Remote/SSH Mode History Preservation", () => {
 
     expect(apiCallMatch).toBeDefined();
 
-    const params = apiCallMatch![1].split(",").map(p => p.trim()).filter(Boolean);
+    const params = apiCallMatch![1]
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
 
     // Should have at least 5 parameters including history
     expect(params.length).toBeGreaterThanOrEqual(5);
 
-    expect(params.some((p) => p === "history" || p.includes("history"))).toBe(true);
+    expect(params.some((p) => p === "history" || p.includes("history"))).toBe(
+      true,
+    );
   });
 
   it("all sendMessageViaApi calls in sendMessage include history parameter", () => {
     // Find the sendMessage function - use a more flexible regex
     const startMatch = hermesSrc.indexOf("export async function sendMessage(");
     expect(startMatch).toBeGreaterThan(-1);
-    
+
     // Extract from "export async function sendMessage" to the next "export function" or end
     const remainingCode = hermesSrc.substring(startMatch);
     const endMatch = remainingCode.indexOf("\nexport function ");
-    const funcCode = endMatch > 0 ? remainingCode.substring(0, endMatch) : remainingCode;
-    
+    const funcCode =
+      endMatch > 0 ? remainingCode.substring(0, endMatch) : remainingCode;
+
     // Find all sendMessageViaApi calls
-    const apiCalls = funcCode.matchAll(
-      /sendMessageViaApi\(([^)]+)\)/g,
-    );
-    
+    const apiCalls = funcCode.matchAll(/sendMessageViaApi\(([^)]+)\)/g);
+
     const calls = Array.from(apiCalls);
-    
+
     // Should have at least 2 calls (remote mode + local API available)
     expect(calls.length).toBeGreaterThanOrEqual(2);
-    
+
     // Verify all calls include history
     for (const call of calls) {
-      const params = call[1].split(",").map(p => p.trim());
-      const hasHistory = params.some(p => p === "history" || p.includes("history"));
+      const params = call[1].split(",").map((p) => p.trim());
+      const hasHistory = params.some(
+        (p) => p === "history" || p.includes("history"),
+      );
       expect(hasHistory).toBe(true);
     }
   });

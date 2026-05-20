@@ -141,7 +141,8 @@ export default {
   emailAddress: "Endereço de E-mail",
   emailAddrHint: "O seu endereço de e-mail",
   emailPassword: "Palavra-passe de E-mail",
-  emailPassHint: "Palavra-passe de aplicação (não a sua palavra-passe principal)",
+  emailPassHint:
+    "Palavra-passe de aplicação (não a sua palavra-passe principal)",
   smsProvider: "Fornecedor de SMS",
   smsProviderHint: "twilio ou vonage",
   twilioAccountSid: "SID da Conta Twilio",

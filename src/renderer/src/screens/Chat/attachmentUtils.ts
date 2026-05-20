@@ -208,7 +208,9 @@ export async function processFiles(
  *   clipboard also contained plain text (so callers can decide whether to
  *   suppress the default paste behavior).
  */
-export function filesFromClipboard(event: ClipboardEvent | React.ClipboardEvent): {
+export function filesFromClipboard(
+  event: ClipboardEvent | React.ClipboardEvent,
+): {
   files: File[];
   hasText: boolean;
 } {

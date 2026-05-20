@@ -182,11 +182,7 @@ function Providers({
     return () => {
       for (const [key, timer] of timers) {
         clearTimeout(timer);
-        void window.hermesAPI.setEnv(
-          key,
-          envRef.current[key] || "",
-          profile,
-        );
+        void window.hermesAPI.setEnv(key, envRef.current[key] || "", profile);
       }
       timers.clear();
     };
@@ -249,11 +245,7 @@ function Providers({
         <div className="settings-field">
           <label className="settings-field-label">{t("common.provider")}</label>
           <div className="settings-provider-row">
-            <BrandLogo
-              provider={modelProvider}
-              modelId={modelName}
-              size={20}
-            />
+            <BrandLogo provider={modelProvider} modelId={modelName} size={20} />
             <select
               className="input settings-select"
               value={modelProvider}
@@ -408,15 +400,12 @@ function Providers({
       </div>
 
       {SETTINGS_SECTIONS.map((section) => {
-        const isLlmProviders = section.title === "constants.sectionLlmProviders";
+        const isLlmProviders =
+          section.title === "constants.sectionLlmProviders";
         return (
           <div key={section.title} className="settings-section">
             <div className="settings-section-title">{t(section.title)}</div>
-            <div
-              className={
-                isLlmProviders ? "provider-keys-grid" : undefined
-              }
-            >
+            <div className={isLlmProviders ? "provider-keys-grid" : undefined}>
               {section.items.map((field) => (
                 <div
                   key={field.key}

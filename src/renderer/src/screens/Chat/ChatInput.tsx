@@ -338,7 +338,8 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       setAttachmentError(null);
     }
 
-    const canSend = (input.trim().length > 0 || attachments.length > 0) && !isLoading;
+    const canSend =
+      (input.trim().length > 0 || attachments.length > 0) && !isLoading;
 
     return (
       <>

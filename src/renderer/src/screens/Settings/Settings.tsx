@@ -3,7 +3,14 @@ import { useTheme } from "../../components/ThemeProvider";
 import { THEME_OPTIONS } from "../../constants";
 import { useI18n } from "../../components/useI18n";
 import { APP_LOCALES, type AppLocale } from "../../../../shared/i18n";
-import { Check, ChevronDown, Download, Upload, FileText, Send } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Download,
+  Upload,
+  FileText,
+  Send,
+} from "lucide-react";
 
 const TELEGRAM_COMMUNITY_URL = "https://t.me/hermes_agent_desktop";
 

@@ -32,14 +32,14 @@ describe("ssh control options", () => {
   it("disables SSH multiplexing for tunnel processes on every platform", () => {
     // ControlPersist forks a background master and exits the foreground
     // process, which breaks tunnelProcess lifecycle tracking (#195, #159).
-    expect(
-      buildSshControlOptions("linux", { forTunnel: true }),
-    ).toEqual(NO_MULTIPLEXING);
-    expect(
-      buildSshControlOptions("darwin", { forTunnel: true }),
-    ).toEqual(NO_MULTIPLEXING);
-    expect(
-      buildSshControlOptions("win32", { forTunnel: true }),
-    ).toEqual(NO_MULTIPLEXING);
+    expect(buildSshControlOptions("linux", { forTunnel: true })).toEqual(
+      NO_MULTIPLEXING,
+    );
+    expect(buildSshControlOptions("darwin", { forTunnel: true })).toEqual(
+      NO_MULTIPLEXING,
+    );
+    expect(buildSshControlOptions("win32", { forTunnel: true })).toEqual(
+      NO_MULTIPLEXING,
+    );
   });
 });

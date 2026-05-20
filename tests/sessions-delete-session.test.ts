@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { join } from "path";
 import { mkdirSync, rmSync, existsSync } from "fs";
 
 const { TEST_HOME, DB_PATH } = vi.hoisted(() => {
@@ -105,8 +104,7 @@ vi.mock("better-sqlite3", () => {
         this.sql.includes("INSERT OR REPLACE INTO sessions") ||
         this.sql.includes("INSERT INTO sessions")
       ) {
-        const [id, source, startedAt, _endedAt, messageCount, model, title] =
-          args;
+        const [id, source, startedAt, , messageCount, model, title] = args;
         this.store.sessions.set(String(id), {
           id: String(id),
           source: String(source),
@@ -173,7 +171,8 @@ vi.mock("better-sqlite3", () => {
       throw new Error(`Unhandled fake all SQL: ${this.sql}`);
     }
 
-    get(_args: unknown[]): unknown {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    get(..._args: unknown[]): unknown {
       throw new Error(`Unhandled fake get SQL: ${this.sql}`);
     }
   }
@@ -257,7 +256,7 @@ function seedDb(
       s.id,
       s.source ?? "cli",
       s.started_at,
-      s.message_count ?? (s.messages?.length ?? 0),
+      s.message_count ?? s.messages?.length ?? 0,
       s.model ?? "gpt-4o",
       s.title ?? null,
     );
@@ -297,9 +296,7 @@ describe("deleteSession", () => {
         id: "session-to-keep",
         started_at: now + 10,
         message_count: 1,
-        messages: [
-          { role: "user", content: "keep me", timestamp: now + 10 },
-        ],
+        messages: [{ role: "user", content: "keep me", timestamp: now + 10 }],
       },
     ]);
 

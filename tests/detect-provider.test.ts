@@ -8,14 +8,28 @@ describe("detectProviderFromUrl", () => {
   });
 
   it("identifies hosted providers by hostname", () => {
-    expect(detectProviderFromUrl("https://openrouter.ai/api/v1")).toBe("openrouter");
-    expect(detectProviderFromUrl("https://api.anthropic.com")).toBe("anthropic");
+    expect(detectProviderFromUrl("https://openrouter.ai/api/v1")).toBe(
+      "openrouter",
+    );
+    expect(detectProviderFromUrl("https://api.anthropic.com")).toBe(
+      "anthropic",
+    );
     expect(detectProviderFromUrl("https://api.openai.com/v1")).toBe("openai");
-    expect(detectProviderFromUrl("https://generativelanguage.googleapis.com/v1beta")).toBe("google");
+    expect(
+      detectProviderFromUrl("https://generativelanguage.googleapis.com/v1beta"),
+    ).toBe("google");
     expect(detectProviderFromUrl("https://api.x.ai/v1")).toBe("xai");
-    expect(detectProviderFromUrl("https://inference-api.nousresearch.com/v1")).toBe("nous");
-    expect(detectProviderFromUrl("https://dashscope-intl.aliyuncs.com/compatible-mode/v1")).toBe("qwen");
-    expect(detectProviderFromUrl("https://api.minimax.chat/v1")).toBe("minimax");
+    expect(
+      detectProviderFromUrl("https://inference-api.nousresearch.com/v1"),
+    ).toBe("nous");
+    expect(
+      detectProviderFromUrl(
+        "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+      ),
+    ).toBe("qwen");
+    expect(detectProviderFromUrl("https://api.minimax.chat/v1")).toBe(
+      "minimax",
+    );
   });
 
   it("identifies private-network and loopback addresses as custom", () => {
@@ -29,13 +43,21 @@ describe("detectProviderFromUrl", () => {
 
   it("identifies well-known local-LLM ports on any host as custom", () => {
     // Ollama on a LAN VM with a public-looking hostname
-    expect(detectProviderFromUrl("http://ollama.andrea-house.com:11434/v1")).toBe("custom");
+    expect(
+      detectProviderFromUrl("http://ollama.andrea-house.com:11434/v1"),
+    ).toBe("custom");
     // LM Studio
-    expect(detectProviderFromUrl("http://my-workstation.example.com:1234/v1")).toBe("custom");
+    expect(
+      detectProviderFromUrl("http://my-workstation.example.com:1234/v1"),
+    ).toBe("custom");
     // vLLM
-    expect(detectProviderFromUrl("http://gpu-rig.example.com:8000")).toBe("custom");
+    expect(detectProviderFromUrl("http://gpu-rig.example.com:8000")).toBe(
+      "custom",
+    );
     // llama.cpp server
-    expect(detectProviderFromUrl("http://llama.example.com:8080")).toBe("custom");
+    expect(detectProviderFromUrl("http://llama.example.com:8080")).toBe(
+      "custom",
+    );
   });
 
   it("excludes 172.x outside the RFC1918 range", () => {

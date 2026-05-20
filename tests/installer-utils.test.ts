@@ -37,7 +37,8 @@ describe("readLogs logic", () => {
   it("sanitizes log file names", () => {
     const allowed = ["agent.log", "errors.log", "gateway.log"];
     // Simulating the sanitization logic from readLogs
-    const sanitize = (f: string) => (allowed.includes(f) ? f : "agent.log");
+    const sanitize = (f: string): string =>
+      allowed.includes(f) ? f : "agent.log";
 
     expect(sanitize("agent.log")).toBe("agent.log");
     expect(sanitize("errors.log")).toBe("errors.log");
@@ -52,7 +53,9 @@ describe("readLogs logic", () => {
 
 describe("MCP server YAML parsing", () => {
   // Simulate the regex-based parsing from listMcpServers
-  function parseMcpBlock(content: string) {
+  function parseMcpBlock(
+    content: string,
+  ): Array<{ name: string; type: string; enabled: boolean }> {
     const match = content.match(/^mcp_servers:\s*\n((?:[ \t]+.+\n)*)/m);
     if (!match) return [];
     const block = match[1];
@@ -69,7 +72,8 @@ describe("MCP server YAML parsing", () => {
       const serverBlock = block.slice(start, next ? next.index : undefined);
       const hasUrl = /url:/.test(serverBlock);
       const enabledMatch = serverBlock.match(/enabled:\s*(true|false)/i);
-      const enabled = enabledMatch === null || enabledMatch[1].toLowerCase() === "true";
+      const enabled =
+        enabledMatch === null || enabledMatch[1].toLowerCase() === "true";
       servers.push({ name, type: hasUrl ? "http" : "stdio", enabled });
     }
     return servers;
@@ -83,7 +87,11 @@ describe("MCP server YAML parsing", () => {
 `;
     const servers = parseMcpBlock(yaml);
     expect(servers).toHaveLength(1);
-    expect(servers[0]).toEqual({ name: "github", type: "stdio", enabled: true });
+    expect(servers[0]).toEqual({
+      name: "github",
+      type: "stdio",
+      enabled: true,
+    });
   });
 
   it("parses HTTP MCP servers", () => {
@@ -151,22 +159,28 @@ describe("Memory provider discovery", () => {
     writeFileSync(join(pluginsDir, "holographic", "__init__.py"), "");
 
     // Simulate the scanning logic
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { readdirSync } = require("fs");
     const dirs = readdirSync(pluginsDir, { withFileTypes: true });
     const providers = dirs
-      .filter((d: any) => d.isDirectory() && !d.name.startsWith("_"))
-      .map((d: any) => ({
+      .filter(
+        (d: { isDirectory(): boolean; name: string }) =>
+          d.isDirectory() && !d.name.startsWith("_"),
+      )
+      .map((d: { name: string }) => ({
         name: d.name,
         installed: existsSync(join(pluginsDir, d.name, "__init__.py")),
       }));
 
     expect(providers).toHaveLength(3);
-    expect(providers.map((p: any) => p.name).sort()).toEqual([
+    expect(providers.map((p: { name: string }) => p.name).sort()).toEqual([
       "holographic",
       "honcho",
       "mem0",
     ]);
-    expect(providers.every((p: any) => p.installed)).toBe(true);
+    expect(providers.every((p: { installed: boolean }) => p.installed)).toBe(
+      true,
+    );
   });
 
   it("reads active provider from config.yaml", () => {
@@ -282,11 +296,7 @@ describe("OAuth credential discovery", () => {
 describe("Backward compatibility", () => {
   it("getEnhancedPath logic includes standard paths", () => {
     // Simulate getEnhancedPath extra paths
-    const extra = [
-      "/usr/local/bin",
-      "/opt/homebrew/bin",
-      "/opt/homebrew/sbin",
-    ];
+    const extra = ["/usr/local/bin", "/opt/homebrew/bin", "/opt/homebrew/sbin"];
     const result = [...extra, process.env.PATH || ""].join(":");
     expect(result).toContain("/usr/local/bin");
     expect(result).toContain("/opt/homebrew/bin");

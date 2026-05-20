@@ -247,7 +247,9 @@ function Chat({
       </div>
       {dragActive && (
         <div className="chat-drop-overlay" aria-hidden>
-          <div className="chat-drop-overlay-inner">{t("chat.dropToAttach")}</div>
+          <div className="chat-drop-overlay-inner">
+            {t("chat.dropToAttach")}
+          </div>
         </div>
       )}
     </div>

@@ -92,7 +92,7 @@ describe("decodeContent", () => {
 
   it("preserves image order and uses stable IDs derived from messageId", () => {
     const raw =
-      '\x00json:[' +
+      "\x00json:[" +
       '{"type":"image_url","image_url":"data:image/png;base64,AAA="},' +
       '{"type":"image_url","image_url":"data:image/jpeg;base64,BBB="},' +
       '{"type":"image_url","image_url":"data:image/webp;base64,CCC="}' +
@@ -117,7 +117,7 @@ describe("decodeContent", () => {
 
   it("accepts the Responses-API spellings input_text / input_image", () => {
     const raw =
-      '\x00json:[' +
+      "\x00json:[" +
       '{"type":"input_text","text":"prompt"},' +
       '{"type":"input_image","image_url":"data:image/png;base64,AAA="}' +
       "]";

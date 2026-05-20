@@ -391,10 +391,14 @@ function isAdapterRunning(): boolean {
 // in the SSH tunnel machinery.
 function probeHttp(url: string, timeoutMs = 1500): Promise<boolean> {
   return new Promise((resolve) => {
-    const req = http.request(url, { method: "GET", timeout: timeoutMs }, (res) => {
-      res.resume();
-      resolve(true);
-    });
+    const req = http.request(
+      url,
+      { method: "GET", timeout: timeoutMs },
+      (res) => {
+        res.resume();
+        resolve(true);
+      },
+    );
     req.on("error", () => resolve(false));
     req.on("timeout", () => {
       req.destroy();

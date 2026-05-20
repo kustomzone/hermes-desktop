@@ -62,7 +62,11 @@ import type { Attachment } from "../src/shared/attachments";
 
 // ── helpers ──────────────────────────────────────────────
 
-function image(name: string, dataUrl: string | undefined, id = name): Attachment {
+function image(
+  name: string,
+  dataUrl: string | undefined,
+  id = name,
+): Attachment {
   return {
     id,
     kind: "image",
@@ -136,7 +140,11 @@ describe("buildUserContent", () => {
       image("c.png", "data:image/png;base64,CCC=", "3"),
     ]);
     expect(Array.isArray(result)).toBe(true);
-    const arr = result as Array<{ type: string; text?: string; image_url?: { url: string } }>;
+    const arr = result as Array<{
+      type: string;
+      text?: string;
+      image_url?: { url: string };
+    }>;
     expect(arr).toHaveLength(4);
     expect(arr[0]).toEqual({ type: "text", text: "hi" });
     expect(arr[1].image_url?.url).toBe("data:image/png;base64,AAA=");
@@ -160,11 +168,14 @@ describe("buildUserContent", () => {
       image("a.png", "data:image/png;base64,AAA="),
     ]);
     expect(Array.isArray(result)).toBe(true);
-    const arr = result as Array<{ type: string; text?: string; image_url?: { url: string } }>;
+    const arr = result as Array<{
+      type: string;
+      text?: string;
+      image_url?: { url: string };
+    }>;
     expect(arr[0]).toEqual({
       type: "text",
-      text:
-        'describe\n\n<file name="notes.md" mime="text/markdown">\nbody\n</file>',
+      text: 'describe\n\n<file name="notes.md" mime="text/markdown">\nbody\n</file>',
     });
     expect(arr[1]).toEqual({
       type: "image_url",
@@ -180,7 +191,11 @@ describe("buildUserContent", () => {
       image("a.png", "data:image/png;base64,AAA="),
     ]);
     expect(Array.isArray(result)).toBe(true);
-    const arr = result as Array<{ type: string; text?: string; image_url?: { url: string } }>;
+    const arr = result as Array<{
+      type: string;
+      text?: string;
+      image_url?: { url: string };
+    }>;
     expect(arr).toHaveLength(1);
     expect(arr[0]).toEqual({
       type: "image_url",
@@ -215,16 +230,18 @@ describe("buildUserContent", () => {
   });
 
   it("silently drops text-files that have no text field", () => {
-    const result = buildUserContent("hi", [
-      textFile("missing.txt", undefined),
-    ]);
+    const result = buildUserContent("hi", [textFile("missing.txt", undefined)]);
     // No images and no valid text-files → result is just the user text
     expect(result).toBe("hi");
   });
 
   it("appends path-ref attachments as [Attached file: <path>] lines", () => {
     const result = buildUserContent("summarize this", [
-      pathRef("report.pdf", "C:/Users/pmos6/Downloads/report.pdf", "application/pdf"),
+      pathRef(
+        "report.pdf",
+        "C:/Users/pmos6/Downloads/report.pdf",
+        "application/pdf",
+      ),
     ]);
     expect(typeof result).toBe("string");
     expect(result).toBe(
@@ -235,7 +252,11 @@ describe("buildUserContent", () => {
   it("groups multiple path-refs into one block, one per line", () => {
     const result = buildUserContent("compare these", [
       pathRef("a.pdf", "/tmp/a.pdf", "application/pdf"),
-      pathRef("b.docx", "/tmp/b.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+      pathRef(
+        "b.docx",
+        "/tmp/b.docx",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ),
     ]);
     expect(result).toBe(
       "compare these\n\n[Attached file: /tmp/a.pdf]\n[Attached file: /tmp/b.docx]",
@@ -249,12 +270,16 @@ describe("buildUserContent", () => {
       image("screen.png", "data:image/png;base64,AAA="),
     ]);
     expect(Array.isArray(result)).toBe(true);
-    const arr = result as Array<{ type: string; text?: string; image_url?: { url: string } }>;
+    const arr = result as Array<{
+      type: string;
+      text?: string;
+      image_url?: { url: string };
+    }>;
     expect(arr).toHaveLength(2);
     // Text part contains user text, text-file wrapper, AND path-ref line
     expect(arr[0].type).toBe("text");
     expect(arr[0].text).toContain("review");
-    expect(arr[0].text).toContain("<file name=\"code.py\"");
+    expect(arr[0].text).toContain('<file name="code.py"');
     expect(arr[0].text).toContain("[Attached file: /tmp/doc.pdf]");
     expect(arr[1]).toEqual({
       type: "image_url",

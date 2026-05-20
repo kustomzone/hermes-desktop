@@ -12,10 +12,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import type { AppUpdater } from "electron-updater";
 import icon from "../../resources/icon.png?asset";
 import type { Attachment } from "../shared/attachments";
-import {
-  stageAttachment,
-  clearStagedAttachments,
-} from "./attachment-staging";
+import { stageAttachment, clearStagedAttachments } from "./attachment-staging";
 import {
   checkInstallStatus,
   verifyInstall,
@@ -88,7 +85,12 @@ import {
   getPlatformEnabled,
   setPlatformEnabled,
 } from "./config";
-import { listSessions, getSessionMessages, searchSessions, deleteSession } from "./sessions";
+import {
+  listSessions,
+  getSessionMessages,
+  searchSessions,
+  deleteSession,
+} from "./sessions";
 import {
   syncSessionCache,
   listCachedSessions,
@@ -997,7 +999,13 @@ function setupIPC(): void {
   });
   ipcMain.handle(
     "add-model",
-    (_event, name: string, provider: string, model: string, baseUrl: string) => {
+    (
+      _event,
+      name: string,
+      provider: string,
+      model: string,
+      baseUrl: string,
+    ) => {
       const conn = getConnectionConfig();
       if (conn.mode === "ssh" && conn.ssh) {
         return sshAddModel(conn.ssh, name, provider, model, baseUrl);
@@ -1014,7 +1022,8 @@ function setupIPC(): void {
     "update-model",
     (_event, id: string, fields: Record<string, string>) => {
       const conn = getConnectionConfig();
-      if (conn.mode === "ssh" && conn.ssh) return sshUpdateModel(conn.ssh, id, fields);
+      if (conn.mode === "ssh" && conn.ssh)
+        return sshUpdateModel(conn.ssh, id, fields);
       return updateModel(id, fields);
     },
   );

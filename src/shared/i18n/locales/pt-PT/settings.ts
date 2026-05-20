@@ -81,8 +81,7 @@ export default {
   modeLocal: "Local",
   modeRemote: "Remoto",
   modeLocalHint: "A usar o Hermes instalado neste dispositivo",
-  modeRemoteHint:
-    "Ligar a um servidor da API do Hermes na sua rede ou nuvem",
+  modeRemoteHint: "Ligar a um servidor da API do Hermes na sua rede ou nuvem",
   remoteUrl: "URL Remoto",
   remoteUrlHint:
     "O URL do servidor da API do Hermes (deve expor /health e /v1/chat/completions)",

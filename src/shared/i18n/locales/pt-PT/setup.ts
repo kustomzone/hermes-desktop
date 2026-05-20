@@ -2,7 +2,11 @@ export default {
   title: "Configure o seu Fornecedor de IA",
   subtitle: "Escolha um fornecedor e configure-o para começar",
   providerCards: {
-    openrouter: { name: "OpenRouter", desc: "Mais de 200 modelos", tag: "Recomendado" },
+    openrouter: {
+      name: "OpenRouter",
+      desc: "Mais de 200 modelos",
+      tag: "Recomendado",
+    },
     anthropic: { name: "Anthropic", desc: "Modelos Claude", tag: "" },
     openai: { name: "OpenAI", desc: "Modelos GPT", tag: "" },
     local: {
@@ -28,11 +32,15 @@ export default {
   remoteGroupLabel: "APIs Remotas Compatíveis com OpenAI",
   serverUrl: "URL Base",
   modelName: "Nome do Modelo",
-  localServerHint: "Certifique-se de que o seu servidor local está em execução antes de continuar",
-  customServerHint: "Escolha uma predefinição ou cole qualquer URL base compatível com OpenAI",
+  localServerHint:
+    "Certifique-se de que o seu servidor local está em execução antes de continuar",
+  customServerHint:
+    "Escolha uma predefinição ou cole qualquer URL base compatível com OpenAI",
   customApiKeyLabel: "Chave da API",
-  customApiKeyHint: "Obrigatório para APIs remotas. Deixe em branco para localhost.",
-  defaultModelHint: "Deixe em branco para usar o modelo predefinido do servidor",
+  customApiKeyHint:
+    "Obrigatório para APIs remotas. Deixe em branco para localhost.",
+  defaultModelHint:
+    "Deixe em branco para usar o modelo predefinido do servidor",
   missingApiKey: "Por favor, introduza uma chave de API",
   missingServerUrl: "Por favor, introduza o URL do servidor",
   saveFailed: "Falha ao guardar a configuração",
