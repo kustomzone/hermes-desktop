@@ -65,6 +65,39 @@ function Chat({
     set: setFastTier,
   } = useFastMode(profile);
 
+  // Pre-send readiness — fail-open check that disables Send + shows
+  // an inline banner when the desktop can predict that the gateway
+  // will reject the request (e.g. provider configured but its API
+  // key is missing from .env). Re-runs on profile/model/baseUrl
+  // change so the banner reflects the current state.
+  const [readiness, setReadiness] = useState<{
+    ok: boolean;
+    code?: string;
+    message?: string;
+    fixLocation?: string;
+    expectedEnvKey?: string;
+  }>({ ok: true });
+  useEffect(() => {
+    let cancelled = false;
+    (async (): Promise<void> => {
+      try {
+        const r = await window.hermesAPI.validateChatReadiness(profile);
+        if (!cancelled) setReadiness(r);
+      } catch {
+        // Fail open on IPC error — never block Send on validation failure
+        if (!cancelled) setReadiness({ ok: true });
+      }
+    })();
+    return (): void => {
+      cancelled = true;
+    };
+  }, [
+    profile,
+    modelConfig.currentModel,
+    modelConfig.currentProvider,
+    modelConfig.currentBaseUrl,
+  ]);
+
   useChatIPC({
     setMessages,
     setHermesSessionId,
@@ -289,6 +322,7 @@ function Chat({
           hasSession={!!hermesSessionId}
           sessionId={hermesSessionId}
           remoteMode={remoteMode}
+          readiness={readiness}
           onSubmit={actions.handleSend}
           onQuickAsk={actions.handleQuickAsk}
           onAbort={actions.handleAbort}

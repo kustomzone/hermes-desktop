@@ -109,6 +109,7 @@ import {
   updateSessionTitle,
 } from "./session-cache";
 import { listModels, addModel, removeModel, updateModel } from "./models";
+import { validateChatReadiness } from "./validation";
 import {
   listProfiles,
   createProfile,
@@ -515,6 +516,13 @@ function setupIPC(): void {
     const conn = getConnectionConfig();
     if (conn.mode === "ssh" && conn.ssh) return sshReadEnv(conn.ssh, profile);
     return readEnv(profile);
+  });
+
+  // Pre-send chat readiness — answers "if Send is clicked right now,
+  // will it work?". Fail-open semantics: any uncertain state returns
+  // `ok: true`, so the renderer never false-blocks a Send.
+  ipcMain.handle("validate-chat-readiness", (_event, profile?: string) => {
+    return validateChatReadiness(profile);
   });
 
   ipcMain.handle(
@@ -1675,6 +1683,15 @@ function setupUpdater(): void {
   setTimeout(() => {
     autoUpdater.checkForUpdates().catch(() => {});
   }, 5000);
+}
+
+// Opt-in Chrome DevTools Protocol port for E2E testing.
+// Set ENABLE_CDP=1 before launching `npm run dev` to expose the renderer
+// on http://127.0.0.1:9222 so Playwright (or any CDP client) can attach
+// and drive the UI without going through screenshots / OCR. Off by
+// default — no effect on normal dev or production builds.
+if (process.env.ENABLE_CDP === "1") {
+  app.commandLine.appendSwitch("remote-debugging-port", "9222");
 }
 
 app.whenReady().then(() => {
