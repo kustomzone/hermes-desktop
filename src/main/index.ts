@@ -9,6 +9,7 @@ import {
   clipboard,
 } from "electron";
 import { join } from "path";
+import { readdir } from "fs/promises";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import type { AppUpdater } from "electron-updater";
 import icon from "../../resources/icon.png?asset";
@@ -1452,6 +1453,25 @@ function setupIPC(): void {
     if (result.canceled || result.filePaths.length === 0) return null;
     return result.filePaths[0];
   });
+
+  // Read directory contents for worktree panel
+  ipcMain.handle(
+    "read-directory",
+    async (
+      _event,
+      dirPath: string,
+    ): Promise<{ name: string; isDirectory: boolean }[] | null> => {
+      try {
+        const entries = await readdir(dirPath, { withFileTypes: true });
+        return entries.map((entry) => ({
+          name: entry.name,
+          isDirectory: entry.isDirectory(),
+        }));
+      } catch {
+        return null;
+      }
+    },
+  );
   ipcMain.handle(
     "kanban-assign-task",
     (_event, taskId: string, assignee: string | null, profile?: string) =>

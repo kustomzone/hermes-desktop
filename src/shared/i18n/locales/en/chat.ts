@@ -83,4 +83,10 @@ export default {
     version: "Show Hermes version",
   },
   queued: "{{count}} message(s) queued — will send when the agent finishes",
+  worktree: {
+    loading: "Loading",
+    empty: "Folder is empty",
+    emptyFolder: "Empty folder",
+    errorLoading: "Failed to load folder contents",
+  },
 } as const;

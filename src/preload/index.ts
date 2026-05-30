@@ -883,6 +883,10 @@ const hermesAPI = {
   ) => ipcRenderer.invoke("kanban-create-task", input, profile),
   selectFolder: (): Promise<string | null> =>
     ipcRenderer.invoke("select-folder"),
+  readDirectory: (
+    dirPath: string,
+  ): Promise<{ name: string; isDirectory: boolean }[] | null> =>
+    ipcRenderer.invoke("read-directory", dirPath),
   kanbanAssignTask: (
     taskId: string,
     assignee: string | null,

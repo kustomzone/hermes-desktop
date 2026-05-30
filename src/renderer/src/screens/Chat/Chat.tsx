@@ -4,6 +4,7 @@ import { ChatHeader } from "./ChatHeader";
 import { ChatEmptyState } from "./ChatEmptyState";
 import { MessageList } from "./MessageList";
 import { ModelPicker } from "./ModelPicker";
+import { WorktreePanel } from "./WorktreePanel";
 import { useChatScroll } from "./hooks/useChatScroll";
 import { useChatIPC } from "./hooks/useChatIPC";
 import { useChatActions } from "./hooks/useChatActions";
@@ -312,19 +313,23 @@ function Chat({
         onClear={handleClear}
       />
 
-      <div className="chat-messages" ref={containerRef}>
-        {messages.length === 0 ? (
-          <ChatEmptyState onSelectSuggestion={handleSuggestion} />
-        ) : (
-          <MessageList
-            messages={messages}
-            isLoading={isLoading}
-            toolProgress={toolProgress}
-            onApprove={actions.handleApprove}
-            onDeny={actions.handleDeny}
-          />
-        )}
-        <div ref={bottomRef} />
+      <div className="chat-body">
+        <div className="chat-messages" ref={containerRef}>
+          {messages.length === 0 ? (
+            <ChatEmptyState onSelectSuggestion={handleSuggestion} />
+          ) : (
+            <MessageList
+              messages={messages}
+              isLoading={isLoading}
+              toolProgress={toolProgress}
+              onApprove={actions.handleApprove}
+              onDeny={actions.handleDeny}
+            />
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        {contextFolder && <WorktreePanel folderPath={contextFolder} />}
       </div>
 
       {queuedCount > 0 && (
