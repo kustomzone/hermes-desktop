@@ -89,4 +89,6 @@ export default {
     emptyFolder: "Empty folder",
     errorLoading: "Failed to load folder contents",
   },
+  showWorktree: "Show file explorer",
+  hideWorktree: "Hide file explorer",
 } as const;

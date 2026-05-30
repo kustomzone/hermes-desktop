@@ -50,6 +50,8 @@ function Chat({
   // Working folder bound to this conversation (issue #27). Per-conversation,
   // held in memory; reset on session switch / new chat below.
   const [contextFolder, setContextFolder] = useState<string | null>(null);
+  // Whether the worktree panel is visible (only applies when contextFolder is set)
+  const [worktreeVisible, setWorktreeVisible] = useState<boolean>(true);
   const dragCounter = useRef(0);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const queueRef = useRef<QueuedMessage[]>([]);
@@ -306,9 +308,11 @@ function Chat({
         hasMessages={messages.length > 0}
         contextFolder={contextFolder}
         showContextFolder={!remoteMode}
+        worktreeVisible={worktreeVisible}
         onPickFolder={handlePickFolder}
         onClearFolder={handleClearFolder}
         onToggleFast={toggleFastMode}
+        onToggleWorktree={() => setWorktreeVisible((v) => !v)}
         onNewChat={onNewChat}
         onClear={handleClear}
       />
@@ -329,7 +333,9 @@ function Chat({
           <div ref={bottomRef} />
         </div>
 
-        {contextFolder && <WorktreePanel folderPath={contextFolder} />}
+        {contextFolder && worktreeVisible && (
+          <WorktreePanel folderPath={contextFolder} />
+        )}
       </div>
 
       {queuedCount > 0 && (

@@ -1194,12 +1194,30 @@ body {
 .worktree-empty,
 .worktree-error {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--error);
   padding: 8px 14px;
 }
 
-.worktree-error {
-  color: var(--error);
+/* Worktree toggle button in header */
+.chat-worktree-toggle {
+  opacity: 0.5;
+  margin-left: 2px;
+  transition:
+    opacity 0.15s,
+    color 0.15s;
+}
+
+.chat-worktree-toggle:hover {
+  opacity: 0.8;
+}
+
+.chat-worktree-active {
+  opacity: 1;
+  color: var(--accent-text);
+}
+
+.chat-worktree-active:hover {
+  opacity: 1;
 }
 
 .chat-header {
