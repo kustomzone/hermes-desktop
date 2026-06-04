@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
@@ -26,6 +32,7 @@ async function freshModels(): Promise<typeof import("../src/main/models")> {
 
 interface ProviderEntry {
   name: string;
+  provider: string;
   model: string;
   baseUrl: string;
   apiKey: string;
@@ -39,6 +46,7 @@ function writeCustomProviders(entries: ProviderEntry[]): void {
       .map(
         (e) =>
           `  - name: "${e.name}"\n` +
+          `    provider: "${e.provider}"\n` +
           `    model: "${e.model}"\n` +
           `    base_url: "${e.baseUrl}"\n` +
           `    api_key: "${e.apiKey}"\n`,
@@ -190,5 +198,25 @@ describe("custom-provider env persistence — dual-engine compat", () => {
     const deepseekMatches = envContent.match(/^DEEPSEEK_API_KEY=/gm) || [];
     expect(customMatches).toHaveLength(1);
     expect(deepseekMatches).toHaveLength(1);
+  });
+
+  it("does NOT persist the no-key-required sentinel to custom or host-derived env vars", async () => {
+    writeCustomProviders([
+      {
+        name: "LocalDeepseekCompat",
+        provider: "custom",
+        model: "deepseek-chat",
+        baseUrl: "https://api.deepseek.com/v1",
+        apiKey: "no-key-required",
+      },
+    ]);
+
+    const { listModels } = await freshModels();
+    listModels();
+
+    const envFile = join(testHome, ".env");
+    const envContent = existsSync(envFile) ? readFileSync(envFile, "utf-8") : "";
+    expect(envContent).not.toMatch(/^CUSTOM_PROVIDER_LOCALDEEPSEEKCOMPAT_KEY=/m);
+    expect(envContent).not.toMatch(/^DEEPSEEK_API_KEY=/m);
   });
 });

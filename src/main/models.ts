@@ -110,7 +110,7 @@ function seedDefaults(profile?: string): SavedModel[] {
         apiMode: cp.apiMode || null,
         createdAt: Date.now(),
       });
-      if (cp.apiKey) {
+      if (cp.apiKey && cp.apiKey !== "no-key-required") {
         try {
           let envContent = existsSync(envFile)
             ? readFileSync(envFile, "utf-8")
